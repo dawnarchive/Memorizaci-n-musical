@@ -1,0 +1,1131 @@
+<!doctype html>
+<html lang="es" class="h-full bg-slate-50">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Música y memoria — Experimento Científico</title>
+
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Chart.js for data visualization -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Font Awesome for Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+        },
+      }
+    }
+  }
+</script>
+
+<style>
+  @keyframes pulseGlow {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.03); opacity: 0.95; }
+  }
+
+  .pulse-card {
+    animation: pulseGlow 3s ease-in-out infinite;
+  }
+
+  .emoji-display {
+    font-size: min(25vw, 160px);
+    line-height: 1;
+    filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.1));
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .option-btn {
+    transition: all 0.15s ease-out;
+  }
+
+  .option-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+  }
+
+  .option-btn:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  /* Glassmorphism subtle effects */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+  }
+</style>
+</head>
+
+<body class="min-h-full flex flex-col justify-between font-sans text-slate-800 antialiased selection:bg-indigo-500 selection:text-white">
+
+<header class="w-full bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-30">
+  <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white shadow-md shadow-indigo-200">
+        <i class="fa-solid fa-brain text-lg"></i>
+      </div>
+      <div>
+        <h1 class="font-bold text-slate-900 leading-tight">Música y Memoria</h1>
+        <p class="text-xs text-slate-500 font-medium">Proyecto Método Científico</p>
+      </div>
+    </div>
+    
+    <div class="flex items-center gap-2">
+      <button onclick="showAnalyticsModal()" class="px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-indigo-600 bg-slate-100 hover:bg-indigo-50 rounded-lg transition-colors flex items-center gap-1.5">
+        <i class="fa-solid fa-chart-column"></i>
+        <span>Ver Datos (<span id="sessionCountBadge">0</span>)</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-3xl w-full mx-auto px-4 py-6 flex-grow flex items-center justify-center">
+
+<section id="screen-intro" class="w-full">
+  <div class="glass-card rounded-3xl p-6 md:p-8 shadow-xl shadow-slate-200/50 space-y-6">
+    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-bold tracking-wide">
+      <i class="fa-solid fa-flask"></i>
+      <span>HIPÓTESIS DE INVESTIGACIÓN</span>
+    </div>
+
+    <div class="space-y-2">
+      <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">
+        ¿Cómo afecta la música a la memoria visual?
+      </h2>
+      <p class="text-slate-600 text-base leading-relaxed">
+        Este experimento estandarizado evalúa el impacto de la estimulación auditiva musical durante la fase de codificación de estímulos visuales sobre el rendimiento posterior de recuerdo inmediato.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+      <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-1">
+        <div class="text-xs font-bold uppercase text-slate-400">Variable Independiente</div>
+        <div class="text-sm font-semibold text-slate-800">Estímulo Auditivo (Música vs. Silencio)</div>
+      </div>
+      <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-1">
+        <div class="text-xs font-bold uppercase text-slate-400">Variable Dependiente</div>
+        <div class="text-sm font-semibold text-slate-800">Aciertos en Prueba de Recuerdo (%)</div>
+      </div>
+      <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-1">
+        <div class="text-xs font-bold uppercase text-slate-400">Variables Controladas</div>
+        <div class="text-sm font-semibold text-slate-800">Tiempo de exposición y distractores</div>
+      </div>
+    </div>
+
+    <div class="bg-indigo-900/5 rounded-2xl p-4 border border-indigo-100 space-y-3">
+      <h3 class="text-sm font-bold text-indigo-950 flex items-center gap-2">
+        <i class="fa-solid fa-list-check text-indigo-600"></i> Protocolo del Sujeto de Prueba:
+      </h3>
+      <ul class="text-xs md:text-sm text-slate-700 space-y-2 pl-2">
+        <li class="flex items-start gap-2">
+          <span class="font-bold text-indigo-600">1.</span>
+          <span>Observa atentamente la secuencia de <strong>20 imágenes visuales</strong>.</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="font-bold text-indigo-600">2.</span>
+          <span>El entorno (con o sin música instrumental) se asignará aleatoriamente para garantizar validez.</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="font-bold text-indigo-600">3.</span>
+          <span>Completa un breve receso distractor de 5 segundos.</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="font-bold text-indigo-600">4.</span>
+          <span>Responde la evaluación de opción múltiple de 20 preguntas.</span>
+        </li>
+      </ul>
+    </div>
+
+    <div class="flex flex-col sm:flex-row items-center gap-3 pt-2">
+      <button onclick="goToSetup()" class="w-full sm:w-auto flex-1 py-3.5 px-6 rounded-2xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-bold text-base shadow-lg shadow-indigo-200 transition-all flex items-center justify-center gap-2">
+        <span>Iniciar Experimento</span>
+        <i class="fa-solid fa-arrow-right text-sm"></i>
+      </button>
+      <button onclick="showAnalyticsModal()" class="w-full sm:w-auto py-3.5 px-5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm transition-colors flex items-center justify-center gap-2">
+        <i class="fa-solid fa-database"></i>
+        <span>Histórico de Resultados</span>
+      </button>
+    </div>
+  </div>
+</section>
+
+<section id="screen-setup" class="w-full hidden">
+  <div class="glass-card rounded-3xl p-6 md:p-8 shadow-xl shadow-slate-200/50 space-y-6">
+    <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+      <div>
+        <span class="inline-block px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 text-xs font-bold">FASE 1</span>
+        <h2 class="text-2xl font-bold text-slate-900 mt-1">Configuración de Sesión</h2>
+      </div>
+      <i class="fa-solid fa-sliders text-2xl text-slate-400"></i>
+    </div>
+
+    <div class="space-y-5">
+      <!-- Duration per item -->
+      <div class="space-y-2">
+        <label class="block text-sm font-bold text-slate-700">
+          Tiempo de exposición por imagen
+        </label>
+        <div class="grid grid-cols-3 gap-3">
+          <button type="button" onclick="setDuration(2000, this)" class="dur-btn border-2 border-slate-200 hover:border-indigo-500 rounded-xl p-3 text-center transition-all">
+            <div class="font-extrabold text-slate-800 text-lg">2.0s</div>
+            <div class="text-[11px] text-slate-500 font-medium">Rápido</div>
+          </button>
+          <button type="button" onclick="setDuration(3000, this)" class="dur-btn border-2 border-indigo-600 bg-indigo-50/50 rounded-xl p-3 text-center transition-all">
+            <div class="font-extrabold text-indigo-700 text-lg">3.0s</div>
+            <div class="text-[11px] text-indigo-600 font-semibold">Estándar</div>
+          </button>
+          <button type="button" onclick="setDuration(4000, this)" class="dur-btn border-2 border-slate-200 hover:border-indigo-500 rounded-xl p-3 text-center transition-all">
+            <div class="font-extrabold text-slate-800 text-lg">4.0s</div>
+            <div class="text-[11px] text-slate-500 font-medium">Relajado</div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Condition Assignment -->
+      <div class="space-y-2">
+        <label class="block text-sm font-bold text-slate-700">
+          Asignación del Grupo Experimental
+        </label>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <button type="button" onclick="setCondition('random', this)" class="cond-btn border-2 border-indigo-600 bg-indigo-50/50 rounded-xl p-3 text-left transition-all">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-indigo-900 text-sm">Aleatorio</span>
+              <i class="fa-solid fa-dice text-indigo-600"></i>
+            </div>
+            <div class="text-[11px] text-indigo-700 mt-1">Doble ciego recomendado</div>
+          </button>
+          <button type="button" onclick="setCondition('music', this)" class="cond-btn border-2 border-slate-200 hover:border-indigo-500 rounded-xl p-3 text-left transition-all">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-slate-800 text-sm">Con Música</span>
+              <i class="fa-solid fa-music text-slate-500"></i>
+            </div>
+            <div class="text-[11px] text-slate-500 mt-1">Forzar estímulo sonoro</div>
+          </button>
+          <button type="button" onclick="setCondition('nomusic', this)" class="cond-btn border-2 border-slate-200 hover:border-indigo-500 rounded-xl p-3 text-left transition-all">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-slate-800 text-sm">Sin Música</span>
+              <i class="fa-solid fa-volume-xmark text-slate-500"></i>
+            </div>
+            <div class="text-[11px] text-slate-500 mt-1">Grupo Control (Silencio)</div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Custom Audio Source -->
+      <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2">
+        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+          Fuente de Música (Opcional)
+        </label>
+        <input type="file" id="customAudioFile" accept="audio/*" class="block w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-100 file:text-indigo-700 hover:file:bg-indigo-200 cursor-pointer">
+        <p class="text-[11px] text-slate-500">
+          Si no seleccionas un archivo propio, el sistema generará automáticamente un fondo musical instrumental binaural suave utilizando sintetizadores de Web Audio.
+        </p>
+      </div>
+
+      <!-- Subject identifier -->
+      <div class="space-y-1">
+        <label for="subjectIdInput" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+          Identificador del Participante / Sujeto
+        </label>
+        <input type="text" id="subjectIdInput" placeholder="Ej: Sujeto-01 o Nombre" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+      </div>
+    </div>
+
+    <div class="pt-2 flex gap-3">
+      <button onclick="goToIntro()" class="py-3 px-5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm transition-colors">
+        Atrás
+      </button>
+      <button onclick="startExperimentSequence()" class="flex-1 py-3 px-6 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-base shadow-md shadow-indigo-200 transition-all flex items-center justify-center gap-2">
+        <span>Asignar e Iniciar Fase de Memorización</span>
+        <i class="fa-solid fa-circle-play"></i>
+      </button>
+    </div>
+  </div>
+</section>
+
+<section id="screen-memorization" class="w-full hidden">
+  <div class="glass-card rounded-3xl p-6 md:p-8 shadow-xl shadow-slate-200/50 text-center space-y-6">
+    <div class="flex items-center justify-between">
+      <span id="badgeCondition" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-indigo-100 text-indigo-800">
+        <i class="fa-solid fa-headphones"></i>
+        <span id="badgeConditionText">Condición: Evaluando...</span>
+      </span>
+
+      <div class="text-xs font-semibold text-slate-500">
+        <span id="itemCounterText" class="text-indigo-600 font-extrabold text-sm">1</span> / 20
+      </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+      <div id="memoryProgressBar" class="h-full bg-gradient-to-r from-indigo-500 to-violet-600 w-0 transition-all duration-300"></div>
+    </div>
+
+    <!-- Main Visual Canvas Stage -->
+    <div class="relative w-full h-64 md:h-72 bg-gradient-to-b from-indigo-50/50 to-slate-100/80 rounded-2xl border border-slate-200/80 flex items-center justify-center overflow-hidden shadow-inner">
+      <div id="memoryDisplay" class="emoji-display select-none">
+        <!-- Emoji rendered dynamically -->
+        ◌
+      </div>
+      <div id="countdownBadge" class="absolute bottom-3 right-3 bg-white/90 backdrop-blur px-2.5 py-1 rounded-lg border border-slate-200 text-[11px] font-bold text-slate-600 flex items-center gap-1">
+        <i class="fa-regular fa-clock text-indigo-500"></i>
+        <span id="timeRemainingText">3.0s</span>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-between text-xs text-slate-500 px-2">
+      <span class="flex items-center gap-1.5">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+        <span>Observa detenidamente cada imagen</span>
+      </span>
+      <span id="audioIndicator" class="font-medium flex items-center gap-1 text-slate-400">
+        <i class="fa-solid fa-volume-high"></i> <span id="audioStatusText">Audio listo</span>
+      </span>
+    </div>
+  </div>
+</section>
+
+<section id="screen-pause" class="w-full hidden">
+  <div class="glass-card rounded-3xl p-6 md:p-8 shadow-xl shadow-slate-200/50 text-center space-y-6">
+    <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto text-2xl">
+      <i class="fa-solid fa-hourglass-half animate-spin"></i>
+    </div>
+
+    <div class="space-y-2">
+      <h2 class="text-2xl font-bold text-slate-900">Pausa Distractora Corta</h2>
+      <p class="text-slate-600 text-sm max-w-md mx-auto">
+        Fase de transición para consolidar la memoria sensorial antes de comenzar la prueba de reconocimiento.
+      </p>
+    </div>
+
+    <div class="text-5xl font-black text-indigo-600 tracking-tight py-4" id="pauseCountdown">
+      5
+    </div>
+
+    <button onclick="skipPauseAndStartQuiz()" class="text-xs text-slate-400 hover:text-indigo-600 underline font-medium">
+      Saltar temporizador y comenzar evaluación inmediatamente
+    </button>
+  </div>
+</section>
+
+<section id="screen-quiz" class="w-full hidden">
+  <div class="glass-card rounded-3xl p-6 md:p-8 shadow-xl shadow-slate-200/50 space-y-6">
+    <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+      <div>
+        <span class="inline-block px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold">FASE 2</span>
+        <h2 class="text-xl md:text-2xl font-bold text-slate-900 mt-0.5">Prueba de Recuerdo Visual</h2>
+      </div>
+      <div class="text-right">
+        <div class="text-xs text-slate-400">Pregunta</div>
+        <div class="text-lg font-extrabold text-indigo-600">
+          <span id="quizCurrentNum">1</span> / 20
+        </div>
+      </div>
+    </div>
+
+    <div class="space-y-1">
+      <h3 class="text-base md:text-lg font-bold text-slate-800">
+        ¿Cuál de estos objetos ESTABA PRESENTE en la secuencia visual mostrada?
+      </h3>
+      <p class="text-xs text-slate-500">Selecciona únicamente la opción que recuerdes haber visto previamente.</p>
+    </div>
+
+    <!-- 4 Option Grid -->
+    <div id="quizOptionsContainer" class="grid grid-cols-2 gap-3 md:gap-4 pt-2">
+      <!-- Generated via JS -->
+    </div>
+
+    <div class="flex justify-end pt-2">
+      <button id="btnNextQuiz" onclick="submitQuizAnswer()" disabled class="w-full sm:w-auto px-8 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2">
+        <span>Siguiente Pregunta</span>
+        <i class="fa-solid fa-chevron-right text-xs"></i>
+      </button>
+    </div>
+  </div>
+</section>
+
+<section id="screen-results" class="w-full hidden">
+  <div class="glass-card rounded-3xl p-6 md:p-8 shadow-xl shadow-slate-200/50 text-center space-y-6">
+    <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-3xl">
+      <i class="fa-solid fa-trophy"></i>
+    </div>
+
+    <div class="space-y-1">
+      <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Resultado Registrado</span>
+      <h2 class="text-3xl font-extrabold text-slate-900">¡Experimento Completado!</h2>
+    </div>
+
+    <!-- Score Big Card -->
+    <div class="bg-gradient-to-br from-indigo-900 to-slate-900 text-white rounded-2xl p-6 shadow-lg space-y-2 max-w-md mx-auto">
+      <div class="text-slate-300 text-xs font-bold uppercase tracking-wider">Puntuación Final</div>
+      <div class="text-5xl font-black text-indigo-300" id="finalScorePct">0%</div>
+      <div class="text-sm text-slate-200 font-medium">
+        <span id="finalScoreCorrect">0</span> aciertos de 20 preguntas (<span id="finalScoreCondition">Sin Música</span>)
+      </div>
+    </div>
+
+    <p id="resultInterpretation" class="text-xs md:text-sm text-slate-600 max-w-lg mx-auto leading-relaxed">
+      Tus datos han sido registrados localmente en la base de datos del estudio.
+    </p>
+
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+      <button onclick="showAnalyticsModal()" class="w-full sm:w-auto px-6 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2">
+        <i class="fa-solid fa-chart-pie"></i>
+        <span>Ver Análisis Comparativo Global</span>
+      </button>
+      <button onclick="resetToNewSession()" class="w-full sm:w-auto px-6 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm transition-colors flex items-center justify-center gap-2">
+        <i class="fa-solid fa-rotate-right"></i>
+        <span>Nueva Sesión de Prueba</span>
+      </button>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<div id="analyticsModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+  <div class="bg-white rounded-3xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+    <!-- Header -->
+    <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center text-sm font-bold">
+          <i class="fa-solid fa-chart-line"></i>
+        </div>
+        <div>
+          <h3 class="font-bold text-slate-900 text-base">Panel de Análisis Experimental</h3>
+          <p class="text-xs text-slate-500">Comparación estadística entre grupos</p>
+        </div>
+      </div>
+      <button onclick="closeAnalyticsModal()" class="w-8 h-8 rounded-full bg-slate-200 hover:bg-slate-300 text-slate-600 text-sm flex items-center justify-center">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="p-5 overflow-y-auto space-y-6 flex-grow">
+      <!-- Stats Summary Cards -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div class="bg-indigo-50/60 p-3.5 rounded-2xl border border-indigo-100">
+          <div class="text-[11px] font-bold text-indigo-700 uppercase">Muestra Total (N)</div>
+          <div class="text-2xl font-black text-indigo-900" id="statN">0</div>
+        </div>
+        <div class="bg-emerald-50/60 p-3.5 rounded-2xl border border-emerald-100">
+          <div class="text-[11px] font-bold text-emerald-700 uppercase">Promedio Con Música</div>
+          <div class="text-2xl font-black text-emerald-900" id="statMusicAvg">0%</div>
+        </div>
+        <div class="bg-slate-100 p-3.5 rounded-2xl border border-slate-200">
+          <div class="text-[11px] font-bold text-slate-600 uppercase">Promedio Sin Música</div>
+          <div class="text-2xl font-black text-slate-800" id="statNoMusicAvg">0%</div>
+        </div>
+        <div class="bg-amber-50/60 p-3.5 rounded-2xl border border-amber-100">
+          <div class="text-[11px] font-bold text-amber-700 uppercase">Diferencia Delta</div>
+          <div class="text-2xl font-black text-amber-900" id="statDelta">+0%</div>
+        </div>
+      </div>
+
+      <!-- Chart Container -->
+      <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+        <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3">
+          Promedio de Aciertos Recordados (%) por Condición
+        </h4>
+        <div class="h-56 relative w-full">
+          <canvas id="comparisonChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Data Table -->
+      <div class="space-y-2">
+        <div class="flex items-center justify-between">
+          <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider">
+            Registro Individual de Ensayos
+          </h4>
+          <span class="text-xs text-slate-400" id="tableRecordCount">0 registros</span>
+        </div>
+
+        <div class="overflow-x-auto border border-slate-200 rounded-xl">
+          <table class="w-full text-left text-xs text-slate-600">
+            <thead class="bg-slate-100 text-slate-700 font-bold uppercase text-[10px] tracking-wider border-b border-slate-200">
+              <tr>
+                <th class="py-2.5 px-3">Fecha</th>
+                <th class="py-2.5 px-3">Sujeto</th>
+                <th class="py-2.5 px-3">Condición</th>
+                <th class="py-2.5 px-3">Duración</th>
+                <th class="py-2.5 px-3 text-right">Aciertos</th>
+                <th class="py-2.5 px-3 text-right">% Recuerdo</th>
+              </tr>
+            </thead>
+            <tbody id="trialTableBody" class="divide-y divide-slate-100">
+              <!-- Rows populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer Controls -->
+    <div class="p-4 bg-slate-50 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
+      <button onclick="clearExperimentData()" class="px-3.5 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold text-xs transition-colors flex items-center gap-1.5">
+        <i class="fa-solid fa-trash-can"></i>
+        <span>Borrar Todos los Datos</span>
+      </button>
+
+      <div class="flex items-center gap-2">
+        <button onclick="exportToCSV()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow transition-all flex items-center gap-1.5">
+          <i class="fa-solid fa-file-csv"></i>
+          <span>Exportar Dataset CSV</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Footer Info -->
+<footer class="w-full border-t border-slate-200 py-4 text-center text-xs text-slate-400 bg-white">
+  <div class="max-w-4xl mx-auto px-4">
+    Experimento de Psicología Cognitiva &bull; Herramienta de Demostración Científica
+  </div>
+</footer>
+
+<script>
+const MASTER_ITEM_POOL = [
+  { emoji: "🐋", name: "Ballena" },
+  { emoji: "🦈", name: "Tiburón" },
+  { emoji: "🦋", name: "Mariposa" },
+  { emoji: "🚀", name: "Cohete" },
+  { emoji: "🎨", name: "Paleta de Arte" },
+  { emoji: "🍕", name: "Pizza" },
+  { emoji: "🎸", name: "Guitarra" },
+  { emoji: "👑", name: "Corona" },
+  { emoji: "🦁", name: "León" },
+  { emoji: "🌵", name: "Cactus" },
+  { emoji: "🚲", name: "Bicicleta" },
+  { emoji: "💎", name: "Diamante" },
+  { emoji: "🍓", name: "Fresa" },
+  { emoji: "🦉", name: "Búho" },
+  { emoji: "🏰", name: "Castillo" },
+  { emoji: "🥑", name: "Aguacate" },
+  { emoji: "⚓", name: "Ancla" },
+  { emoji: "🛸", name: "OVNI" },
+  { emoji: "🎻", name: "Violín" },
+  { emoji: "🌋", name: "Volcán" },
+  // Distractors pool
+  { emoji: "🐼", name: "Panda" },
+  { emoji: "⚽", name: "Balón de Fútbol" },
+  { emoji: "🚁", name: "Helicóptero" },
+  { emoji: "🍦", name: "Helado" },
+  { emoji: "🎷", name: "Saxofón" },
+  { emoji: "🍉", name: "Sandía" },
+  { emoji: "🗼", name: "Torre Eiffel" },
+  { emoji: "🐬", name: "Delfín" },
+  { emoji: "✈️", name: "Avión" },
+  { emoji: "🍔", name: "Hamburguesa" },
+  { emoji: "🎺", name: "Trompeta" },
+  { emoji: "🍍", name: "Piña" },
+  { emoji: "🚗", name: "Coche" },
+  { emoji: "📷", name: "Cámara" },
+  { emoji: "🎁", name: "Regalo" },
+  { emoji: "🏀", name: "Baloncesto" },
+  { emoji: "🔮", name: "Bola de Cristal" },
+  { emoji: "🌮", name: "Taco" },
+  { emoji: "⛵", name: "Velero" },
+  { emoji: "🎧", name: "Auriculares" },
+];
+
+let appConfig = {
+  durationMs: 3000,
+  conditionMode: 'random', // 'random', 'music', 'nomusic'
+  actualCondition: 'nomusic', // 'music' or 'nomusic'
+  subjectId: '',
+  uploadedAudioUrl: null
+};
+
+let currentTrialData = {
+  presentedItems: [],
+  quizQuestions: [],
+  currentQuestionIdx: 0,
+  selectedAnswers: [],
+  score: 0,
+  timestamp: null
+};
+
+let exposureInterval = null;
+let exposureItemIndex = 0;
+let pauseCountdownInterval = null;
+let chartInstance = null;
+
+class AmbientSynth {
+  constructor() {
+    this.ctx = null;
+    this.isPlaying = false;
+    this.timer = null;
+  }
+
+  start() {
+    try {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      this.ctx = new AudioContext();
+      this.isPlaying = true;
+
+      // Soft relaxing chord frequency combinations (Hz)
+      const chords = [
+        [261.63, 329.63, 392.00, 493.88], // Cmaj7
+        [220.00, 261.63, 329.63, 392.00], // Am7
+        [174.61, 220.00, 261.63, 329.63], // Fmaj7
+        [196.00, 246.94, 293.66, 349.23]  // G7
+      ];
+      let chordIdx = 0;
+
+      const playChord = () => {
+        if (!this.isPlaying || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const currentChord = chords[chordIdx % chords.length];
+        chordIdx++;
+
+        currentChord.forEach(freq => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          const filter = this.ctx.createBiquadFilter();
+
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now);
+
+          filter.type = 'lowpass';
+          filter.frequency.setValueAtTime(500, now);
+
+          gain.gain.setValueAtTime(0.0001, now);
+          gain.gain.exponentialRampToValueAtTime(0.06, now + 0.8);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + 3.2);
+
+          osc.connect(filter);
+          filter.connect(gain);
+          gain.connect(this.ctx.destination);
+
+          osc.start(now);
+          osc.stop(now + 3.3);
+        });
+
+        this.timer = setTimeout(playChord, 3100);
+      };
+
+      if (this.ctx.state === 'suspended') {
+        this.ctx.resume();
+      }
+      playChord();
+    } catch (e) {
+      console.warn("AudioContext failed or blocked by browser policy:", e);
+    }
+  }
+
+  stop() {
+    this.isPlaying = false;
+    if (this.timer) clearTimeout(this.timer);
+    if (this.ctx) {
+      this.ctx.close().catch(() => {});
+      this.ctx = null;
+    }
+  }
+}
+
+const synthPlayer = new AmbientSynth();
+let customAudioElement = null;
+
+function showScreen(screenId) {
+  const screens = ['screen-intro', 'screen-setup', 'screen-memorization', 'screen-pause', 'screen-quiz', 'screen-results'];
+  screens.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      if (id === screenId) {
+        el.classList.remove('hidden');
+      } else {
+        el.classList.add('hidden');
+      }
+    }
+  });
+}
+
+function goToIntro() {
+  showScreen('screen-intro');
+}
+
+function goToSetup() {
+  showScreen('screen-setup');
+}
+
+function setDuration(ms, btnEl) {
+  appConfig.durationMs = ms;
+  document.querySelectorAll('.dur-btn').forEach(b => {
+    b.classList.remove('border-indigo-600', 'bg-indigo-50/50');
+    b.classList.add('border-slate-200');
+  });
+  btnEl.classList.remove('border-slate-200');
+  btnEl.classList.add('border-indigo-600', 'bg-indigo-50/50');
+}
+
+function setCondition(mode, btnEl) {
+  appConfig.conditionMode = mode;
+  document.querySelectorAll('.cond-btn').forEach(b => {
+    b.classList.remove('border-indigo-600', 'bg-indigo-50/50');
+    b.classList.add('border-slate-200');
+  });
+  btnEl.classList.remove('border-slate-200');
+  btnEl.classList.add('border-indigo-600', 'bg-indigo-50/50');
+}
+
+function startExperimentSequence() {
+  // Read subject ID
+  const subInput = document.getElementById('subjectIdInput').value.trim();
+  appConfig.subjectId = subInput || `Sujeto-${Math.floor(100 + Math.random() * 900)}`;
+
+  // Process custom audio upload if any
+  const audioFileInput = document.getElementById('customAudioFile');
+  if (audioFileInput.files && audioFileInput.files[0]) {
+    appConfig.uploadedAudioUrl = URL.createObjectURL(audioFileInput.files[0]);
+  } else {
+    appConfig.uploadedAudioUrl = null;
+  }
+
+  // Determine actual condition
+  if (appConfig.conditionMode === 'random') {
+    appConfig.actualCondition = Math.random() < 0.5 ? 'music' : 'nomusic';
+  } else {
+    appConfig.actualCondition = appConfig.conditionMode;
+  }
+
+  // Select 20 items from master pool
+  const shuffledPool = [...MASTER_ITEM_POOL].sort(() => 0.5 - Math.random());
+  currentTrialData.presentedItems = shuffledPool.slice(0, 20);
+  currentTrialData.selectedAnswers = [];
+  currentTrialData.score = 0;
+  currentTrialData.timestamp = new Date().toISOString();
+
+  // Update UI badge
+  const badgeEl = document.getElementById('badgeConditionText');
+  const badgeContainer = document.getElementById('badgeCondition');
+  const audioStatusEl = document.getElementById('audioStatusText');
+
+  if (appConfig.actualCondition === 'music') {
+    badgeEl.textContent = 'Condición: CON MÚSICA';
+    badgeContainer.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-indigo-100 text-indigo-800';
+    audioStatusEl.textContent = 'Música Activada';
+
+    // Start Audio
+    if (appConfig.uploadedAudioUrl) {
+      if (customAudioElement) customAudioElement.pause();
+      customAudioElement = new Audio(appConfig.uploadedAudioUrl);
+      customAudioElement.loop = true;
+      customAudioElement.play().catch(e => console.warn("Custom audio play error:", e));
+    } else {
+      synthPlayer.start();
+    }
+  } else {
+    badgeEl.textContent = 'Condición: SIN MÚSICA (Silencio)';
+    badgeContainer.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700';
+    audioStatusEl.textContent = 'Silencio Controlado';
+  }
+
+  // Show Memorization Screen
+  showScreen('screen-memorization');
+  startExposureLoop();
+}
+
+function startExposureLoop() {
+  exposureItemIndex = 0;
+  renderExposureItem();
+
+  const durationSec = appConfig.durationMs / 1000;
+  let timerStep = durationSec;
+
+  const timerEl = document.getElementById('timeRemainingText');
+  const progressEl = document.getElementById('memoryProgressBar');
+
+  const updateProgressBar = () => {
+    const pct = ((exposureItemIndex + 1) / 20) * 100;
+    progressEl.style.width = `${pct}%`;
+  };
+
+  updateProgressBar();
+
+  // Tick interval for countdown timer display
+  const countdownInterval = setInterval(() => {
+    timerStep -= 0.1;
+    if (timerStep < 0) timerStep = durationSec;
+    timerEl.textContent = `${Math.max(0, timerStep).toFixed(1)}s`;
+  }, 100);
+
+  // Main slide transition interval
+  exposureInterval = setInterval(() => {
+    exposureItemIndex++;
+    if (exposureItemIndex >= 20) {
+      clearInterval(exposureInterval);
+      clearInterval(countdownInterval);
+      finishExposurePhase();
+    } else {
+      timerStep = durationSec;
+      renderExposureItem();
+      updateProgressBar();
+    }
+  }, appConfig.durationMs);
+}
+
+function renderExposureItem() {
+  document.getElementById('itemCounterText').textContent = exposureItemIndex + 1;
+  const displayEl = document.getElementById('memoryDisplay');
+  const currentItem = currentTrialData.presentedItems[exposureItemIndex];
+  
+  // Animation pop
+  displayEl.style.transform = 'scale(0.8)';
+  displayEl.style.opacity = '0.3';
+  
+  setTimeout(() => {
+    displayEl.textContent = currentItem.emoji;
+    displayEl.style.transform = 'scale(1)';
+    displayEl.style.opacity = '1';
+  }, 100);
+}
+
+function finishExposurePhase() {
+  // Stop audio if playing
+  synthPlayer.stop();
+  if (customAudioElement) {
+    customAudioElement.pause();
+    customAudioElement = null;
+  }
+
+  // Start pause screen
+  showScreen('screen-pause');
+  let pauseSecs = 5;
+  const pauseCountdownEl = document.getElementById('pauseCountdown');
+  pauseCountdownEl.textContent = pauseSecs;
+
+  pauseCountdownInterval = setInterval(() => {
+    pauseSecs--;
+    pauseCountdownEl.textContent = pauseSecs;
+    if (pauseSecs <= 0) {
+      clearInterval(pauseCountdownInterval);
+      generateQuizQuestions();
+      startQuizPhase();
+    }
+  }, 1000);
+}
+
+function skipPauseAndStartQuiz() {
+  if (pauseCountdownInterval) clearInterval(pauseCountdownInterval);
+  generateQuizQuestions();
+  startQuizPhase();
+}
+
+function generateQuizQuestions() {
+  // For each of the 20 presented items, create a question with 4 options:
+  // 1 correct (the presented item) + 3 distractors (not presented in this trial)
+  const presented = currentTrialData.presentedItems;
+  const unpresentedPool = MASTER_ITEM_POOL.filter(item => 
+    !presented.some(p => p.emoji === item.emoji)
+  );
+
+  currentTrialData.quizQuestions = presented.map((targetItem, idx) => {
+    // Pick 3 random distractors
+    const shuffledDistractors = [...unpresentedPool].sort(() => 0.5 - Math.random()).slice(0, 3);
+    const options = [targetItem, ...shuffledDistractors].sort(() => 0.5 - Math.random());
+    return {
+      targetItem: targetItem,
+      options: options,
+      selectedIndex: null
+    };
+  });
+
+  // Shuffle question order so recall isn't strictly sequential
+  currentTrialData.quizQuestions.sort(() => 0.5 - Math.random());
+  currentTrialData.currentQuestionIdx = 0;
+}
+
+function startQuizPhase() {
+  showScreen('screen-quiz');
+  renderQuizQuestion();
+}
+
+function renderQuizQuestion() {
+  const qIdx = currentTrialData.currentQuestionIdx;
+  const question = currentTrialData.quizQuestions[qIdx];
+
+  document.getElementById('quizCurrentNum').textContent = qIdx + 1;
+  document.getElementById('btnNextQuiz').disabled = true;
+
+  const container = document.getElementById('quizOptionsContainer');
+  container.innerHTML = '';
+
+  question.options.forEach((opt, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn p-5 rounded-2xl border-2 border-slate-200 bg-white hover:border-indigo-400 flex flex-col items-center justify-center gap-2 transition-all';
+    btn.innerHTML = `
+      <span class="text-4xl md:text-5xl select-none">${opt.emoji}</span>
+      <span class="text-xs font-bold text-slate-700">${opt.name}</span>
+    `;
+    btn.onclick = () => selectQuizOption(idx, btn);
+    container.appendChild(btn);
+  });
+}
+
+function selectQuizOption(optIdx, clickedBtn) {
+  const qIdx = currentTrialData.currentQuestionIdx;
+  currentTrialData.quizQuestions[qIdx].selectedIndex = optIdx;
+
+  // Highlight selection
+  const allBtns = document.querySelectorAll('#quizOptionsContainer button');
+  allBtns.forEach(b => {
+    b.classList.remove('border-indigo-600', 'bg-indigo-50/60', 'ring-2', 'ring-indigo-500');
+    b.classList.add('border-slate-200', 'bg-white');
+  });
+
+  clickedBtn.classList.remove('border-slate-200', 'bg-white');
+  clickedBtn.classList.add('border-indigo-600', 'bg-indigo-50/60', 'ring-2', 'ring-indigo-500');
+
+  document.getElementById('btnNextQuiz').disabled = false;
+}
+
+function submitQuizAnswer() {
+  const qIdx = currentTrialData.currentQuestionIdx;
+  if (qIdx < 19) {
+    currentTrialData.currentQuestionIdx++;
+    renderQuizQuestion();
+  } else {
+    finishQuizAndCalculateScore();
+  }
+}
+
+function finishQuizAndCalculateScore() {
+  let score = 0;
+  currentTrialData.quizQuestions.forEach(q => {
+    if (q.selectedIndex !== null) {
+      const chosen = q.options[q.selectedIndex];
+      if (chosen.emoji === q.targetItem.emoji) {
+        score++;
+      }
+    }
+  });
+
+  currentTrialData.score = score;
+  const percentage = Math.round((score / 20) * 100);
+
+  // Save to LocalStorage
+  saveTrialToStorage({
+    id: 'TR-' + Date.now().toString().slice(-6),
+    date: new Date().toLocaleDateString('es-ES'),
+    subject: appConfig.subjectId,
+    condition: appConfig.actualCondition,
+    durationMs: appConfig.durationMs,
+    score: score,
+    total: 20,
+    percentage: percentage
+  });
+
+  // Render Result UI
+  document.getElementById('finalScorePct').textContent = `${percentage}%`;
+  document.getElementById('finalScoreCorrect').textContent = score;
+  document.getElementById('finalScoreCondition').textContent = 
+    appConfig.actualCondition === 'music' ? 'Con Música' : 'Sin Música (Silencio)';
+
+  const interpEl = document.getElementById('resultInterpretation');
+  if (percentage >= 80) {
+    interpEl.textContent = "Excelente desempeño. Registraste una alta retención visual en esta sesión.";
+  } else if (percentage >= 60) {
+    interpEl.textContent = "Buen nivel de reconocimiento visual. Tus respuestas aportarán al análisis del proyecto.";
+  } else {
+    interpEl.textContent = "Retención moderada. Te recomendamos comparar estos resultados con tus ensayos en la otra condición.";
+  }
+
+  showScreen('screen-results');
+  updateSessionBadgeCount();
+}
+
+function getStoredTrials() {
+  try {
+    const data = localStorage.getItem('music_memory_trials');
+    return data ? JSON.parse(data) : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveTrialToStorage(trial) {
+  const trials = getStoredTrials();
+  trials.unshift(trial);
+  try {
+    localStorage.setItem('music_memory_trials', JSON.stringify(trials));
+  } catch (e) {
+    console.error("Failed to save trial to localStorage", e);
+  }
+}
+
+function updateSessionBadgeCount() {
+  const trials = getStoredTrials();
+  document.getElementById('sessionCountBadge').textContent = trials.length;
+}
+
+function resetToNewSession() {
+  goToSetup();
+}
+
+function showAnalyticsModal() {
+  const trials = getStoredTrials();
+  document.getElementById('analyticsModal').classList.remove('hidden');
+
+  // Compute metrics
+  const N = trials.length;
+  document.getElementById('statN').textContent = N;
+  document.getElementById('tableRecordCount').textContent = `${N} registros`;
+
+  const musicTrials = trials.filter(t => t.condition === 'music');
+  const noMusicTrials = trials.filter(t => t.condition === 'nomusic');
+
+  const calcAvg = arr => arr.length ? Math.round(arr.reduce((a, b) => a + b.percentage, 0) / arr.length) : 0;
+
+  const musicAvg = calcAvg(musicTrials);
+  const noMusicAvg = calcAvg(noMusicTrials);
+  const delta = musicAvg - noMusicAvg;
+
+  document.getElementById('statMusicAvg').textContent = `${musicAvg}%`;
+  document.getElementById('statNoMusicAvg').textContent = `${noMusicAvg}%`;
+  document.getElementById('statDelta').textContent = `${delta >= 0 ? '+' : ''}${delta}%`;
+
+  // Render Table
+  const tbody = document.getElementById('trialTableBody');
+  tbody.innerHTML = '';
+
+  if (trials.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" class="py-4 text-center text-slate-400">No hay sesiones registradas aún. Completa el experimento para agregar datos.</td></tr>`;
+  } else {
+    trials.forEach(t => {
+      const tr = document.createElement('tr');
+      tr.className = 'hover:bg-slate-50 transition-colors';
+      tr.innerHTML = `
+        <td class="py-2.5 px-3 font-medium">${t.date}</td>
+        <td class="py-2.5 px-3">${t.subject}</td>
+        <td class="py-2.5 px-3">
+          <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold ${t.condition === 'music' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-200 text-slate-700'}">
+            ${t.condition === 'music' ? 'Con Música' : 'Sin Música'}
+          </span>
+        </td>
+        <td class="py-2.5 px-3">${(t.durationMs / 1000).toFixed(1)}s</td>
+        <td class="py-2.5 px-3 text-right font-bold">${t.score} / 20</td>
+        <td class="py-2.5 px-3 text-right font-extrabold ${t.percentage >= 70 ? 'text-emerald-600' : 'text-slate-700'}">${t.percentage}%</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // Render Chart
+  renderAnalyticsChart(musicAvg, noMusicAvg, musicTrials.length, noMusicTrials.length);
+}
+
+function closeAnalyticsModal() {
+  document.getElementById('analyticsModal').classList.add('hidden');
+}
+
+function renderAnalyticsChart(musicAvg, noMusicAvg, musicN, noMusicN) {
+  const ctx = document.getElementById('comparisonChart').getContext('2d');
+  if (chartInstance) {
+    chartInstance.destroy();
+  }
+
+  chartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: [`Con Música (N=${musicN})`, `Sin Música / Silencio (N=${noMusicN})`],
+      datasets: [{
+        label: 'Promedio de Recuerdo (%)',
+        data: [musicAvg, noMusicAvg],
+        backgroundColor: [
+          'rgba(99, 102, 241, 0.85)',
+          'rgba(148, 163, 184, 0.85)'
+        ],
+        borderColor: [
+          'rgb(79, 70, 229)',
+          'rgb(100, 116, 139)'
+        ],
+        borderWidth: 2,
+        borderRadius: 12
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: 100,
+          ticks: {
+            callback: value => value + '%'
+          }
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: context => `Promedio: ${context.raw}%`
+          }
+        }
+      }
+    }
+  });
+}
+
+function exportToCSV() {
+  const trials = getStoredTrials();
+  if (trials.length === 0) {
+    alert("No hay datos disponibles para exportar.");
+    return;
+  }
+
+  const headers = ["ID", "Fecha", "Sujeto", "Condicion", "Exposicion_Segundos", "Aciertos", "Total", "Porcentaje_Aciertos"];
+  const rows = trials.map(t => [
+    t.id,
+    `"${t.date}"`,
+    `"${t.subject}"`,
+    t.condition === 'music' ? "Con Musica" : "Sin Musica",
+    (t.durationMs / 1000).toFixed(1),
+    t.score,
+    t.total,
+    t.percentage
+  ]);
+
+  const csvContent = "data:text/csv;charset=utf-8," 
+    + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", `experimento_musica_memoria_${new Date().toISOString().slice(0, 10)}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+function clearExperimentData() {
+  if (confirm("¿Estás seguro de que deseas eliminar permanentemente todos los datos registrados?")) {
+    localStorage.removeItem('music_memory_trials');
+    updateSessionBadgeCount();
+    showAnalyticsModal();
+  }
+}
+
+// Initialize on page load
+window.onload = function() {
+  updateSessionBadgeCount();
+};
+</script>
+</body>
+</html>
